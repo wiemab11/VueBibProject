@@ -18,10 +18,8 @@
   padding: 15px 30px;
 }
 
-.links a {
-  margin-left: 20px;
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
+.links {
+  display: flex;
+  gap: 15px;
 }
 </style>
