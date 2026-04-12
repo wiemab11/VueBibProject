@@ -1,6 +1,6 @@
 <script>
 import axios from "axios";
-
+//ajouter add book
 export default {
 
   data() {
@@ -23,6 +23,7 @@ export default {
     this.fetchAuthors();
   },
 
+
   methods: {
     // ✅ تجيب authors من backend
     async fetchAuthors() {
@@ -44,6 +45,7 @@ export default {
         this.errorMsg = "Please fill all required fields";
         return;
       }
+
 
       const newBook = {
         title: this.title,
