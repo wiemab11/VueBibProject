@@ -3,8 +3,10 @@
     <h1>Bookstore</h1>
     <div class="links">
       <router-link to="/">Accueil</router-link>
-      <router-link to="/login">Login</router-link>
-      <router-link to="/register">Register</router-link>
+      <router-link to="/books">All-Books</router-link>
+      <router-link to="/add-book">Add</router-link>
+      <router-link to="/favourites">Favourites</router-link>
+      <router-link to="/login">Logout</router-link>
     </div>
   </nav>
 </template>

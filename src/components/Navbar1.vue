@@ -3,8 +3,9 @@
     <h1>Bookstore</h1>
     <div class="links">
       <router-link to="/">Accueil</router-link>
-      <router-link to="/login">Login</router-link>
-      <router-link to="/register">Register</router-link>
+      <router-link to="/books">Books</router-link>
+      <router-link to="/Authors">Authors</router-link>
+      <router-link to="/login">Logout</router-link>
     </div>
   </nav>
 </template>
