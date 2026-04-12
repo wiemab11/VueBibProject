@@ -63,6 +63,7 @@ export default {
   text-align: center;
   border-bottom: 1px solid #e0e6f0;
 }
+
 .hero h2 { font-size: 26px; font-weight: 600; color: #7654a9; margin-bottom: 10px; }
 .hero p  { font-size: 13px; color: #6450d4; margin-bottom: 22px; }
 .btn-hero {
