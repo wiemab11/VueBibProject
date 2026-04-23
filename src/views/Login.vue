@@ -1,114 +1,165 @@
 <template>
-  <div class="form-card">
-    <div class="form-header">
-      <h2>Welcome back</h2>
-      <p>Sign in to your account</p>
-    </div>
-    <div class="form-body">
-      <div class="field">
-        <label>Username</label>
-        <input v-model="username" type="text" placeholder="Enter your username" />
+  <!-- ============================================================
+       Login.vue — Login Page
+       ============================================================ -->
+  <div class="page">
+    <div class="container auth-container">
+      <div class="auth-card">
+
+        <!-- Header -->
+        <div class="auth-header">
+          <span class="auth-icon">🔑</span>
+          <h1>Welcome Back</h1>
+          <p>Sign in to continue your reading journey.</p>
+        </div>
+
+        <!-- Error message -->
+        <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+        <!-- Login Form -->
+        <form @submit.prevent="handleLogin">
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              class="form-input"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input
+              id="password"
+              v-model="form.password"
+              type="password"
+              class="form-input"
+              placeholder="Your password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg full-width" :disabled="loading">
+            <span v-if="loading" class="btn-spinner"></span>
+            {{ loading ? 'Signing in…' : 'Sign In' }}
+          </button>
+        </form>
+
+        <!-- Footer link -->
+        <p class="auth-footer">
+          Don't have an account?
+          <router-link to="/register">Create one →</router-link>
+        </p>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <input v-model="password" type="password" placeholder="••••••••" />
-      </div>
-      <button class="btn-main" @click="handleLogin" :disabled="loading">
-        {{ loading ? 'Loading...' : 'Login' }}
-      </button>
-      <button class="btn-switch" @click="$router.push('/register')">
-        Switch to Register
-      </button>
     </div>
   </div>
 </template>
-<script setup >
-</script>
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
 
-.form-card {
-  max-width: 480px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(30, 60, 120, 0.10);
-  overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
+<script>
+import { login } from '../services/api.js'
+import { authState } from '../main.js'
+
+export default {
+  name: 'Login',
+
+  data() {
+    return {
+      form: { email: '', password: '' },
+      error: '',
+      loading: false,
+    }
+  },
+
+  methods: {
+    async handleLogin() {
+      this.error = ''
+      this.loading = true
+      try {
+        const { user } = await login(this.form)
+        // Save user to global auth state + localStorage
+        authState.login(user)
+        // Redirect to books page
+        this.$router.push('/books')
+      } catch (err) {
+        this.error = err.message
+      } finally {
+        this.loading = false
+      }
+    },
+  },
 }
-.form-header {
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  padding: 22px 32px 18px;
-  color: #fff;
+</script>
+
+<style scoped>
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
 }
-.form-header h2 { font-size: 19px; font-weight: 600; margin-bottom: 3px; }
-.form-header p { font-size: 12px; opacity: 0.75; font-weight: 300; }
-.form-body { padding: 28px 32px 32px; }
-.field { margin-bottom: 18px; }
-.field label {
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 40px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.4s ease both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.auth-icon {
+  font-size: 2.5rem;
   display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: #4a6080;
-  margin-bottom: 6px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  margin-bottom: 12px;
 }
-.field input {
-  width: 100%;
-  padding: 10px 13px;
-  border: 1.5px solid #d0daea;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #1a2a3a;
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  background: #f7faff;
-  transition: border 0.18s, background 0.18s;
+.auth-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
 }
-.field input:focus { border-color: #2563a8; background: #fff; }
-.field input::placeholder { color: #a0b0c8; }
-.btn-main {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.18s;
-  margin-top: 4px;
+.auth-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
-.btn-main:hover:not(:disabled) {
-  box-shadow: 0 4px 14px rgba(37, 99, 168, 0.35);
-  transform: translateY(-1px);
+
+.full-width { width: 100%; justify-content: center; }
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
-.btn-main:disabled { opacity: 0.65; cursor: not-allowed; }
-.btn-switch {
-  width: 100%;
-  padding: 11px;
-  background: transparent;
-  color: #2563a8;
-  border: 1.5px solid #c0d4ee;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.18s;
-  margin-top: 10px;
+
+/* Inline spinner for button */
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
-.btn-switch:hover { background: #f0f6ff; border-color: #2563a8; }
-.error {
-  font-size: 13px;
-  color: #e53e3e;
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  background: #fff5f5;
-  border-radius: 6px;
-  border: 1px solid #fed7d7;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .auth-card { padding: 32px 24px; }
 }
 </style>

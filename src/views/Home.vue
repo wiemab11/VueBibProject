@@ -1,134 +1,166 @@
-<script>
-export default {
-  data() {
-    return {
-      books: []
-    }
-  }
-}
-</script>
-
 <template>
-  <div>
+  <div class="page">
+    <div class="container">
 
-    <!-- Hero -->
-    <div class="hero">
-      <h2>Découvrez des livres pour tous les goûts</h2>
-      <p>Des classiques intemporels aux derniers best-sellers, trouvez votre prochaine lecture ici.</p>
-
-      <button class="btn-hero" @click="$router.push('/books')">
-        Explorer le catalogue
-      </button>
-    </div>
-
-    <!-- Livres populaires -->
-    <div class="section">
-      <h3>Livres populaires</h3>
-
-      <div class="books-grid">
-        <div class="book-card" v-for="book in books" :key="book.id">
-          <img :src="book.image" :alt="book.title" />
-
-          <div class="book-info">
-            <h4>{{ book.title }}</h4>
-            <p>{{ book.description }}</p>
-
-            <button
-              class="btn-voir"
-              @click="$router.push(`/books/${book.id}`)"
-            >
-              Voir plus
-            </button>
+      <!-- ── Hero Section ─────────────────────────────────────── -->
+      <section class="hero">
+        <div class="hero-content slide-up-enter-active" style="animation: slideUp 0.6s ease both;">
+          <p class="hero-eyebrow">🌸 Welcome to</p>
+          <h1 class="hero-title">Your Favorite<br><em>Book Store</em></h1>
+          <p class="hero-subtitle">
+            Discover beautiful stories, curate your reading list, and fall in love
+            with books all over again.
+          </p>
+          <div class="hero-actions">
+            <router-link to="/books" class="btn btn-primary btn-lg">
+              📚 Explore the Catalog
+            </router-link>
+            <router-link v-if="!isLoggedIn" to="/register" class="btn btn-outline btn-lg">
+              Create Account
+            </router-link>
           </div>
         </div>
-      </div>
+
+        <!-- Decorative blobs -->
+        <div class="hero-decoration" aria-hidden="true">
+          <div class="blob blob-1"></div>
+          <div class="blob blob-2"></div>
+          <div class="book-stack">
+            <div class="book b1">Pride & Prejudice</div>
+            <div class="book b2">One Hundred Years</div>
+            <div class="book b3">Norwegian Wood</div>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <!-- Footer -->
-    <div class="footer-section">
-      <h3>Besoin d'aide ?</h3>
-      <p>Contactez-nous pour toute question ou assistance.</p>
-
-      <button class="btn-contact">Contactez-nous</button>
-    </div>
-
   </div>
 </template>
 
+<script>
+import { authState } from '../main.js'
+
+export default {
+  name: 'Home',
+  computed: {
+    isLoggedIn() { return authState.isLoggedIn },
+  },
+}
+</script>
+
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+/* ── Hero ───────────────────────────────────────────────────── */
 .hero {
-  background: #f5f7fa;
-  padding: 48px 20px;
-  text-align: center;
-  border-bottom: 1px solid #e0e6f0;
-}
-
-.hero h2 { font-size: 26px; font-weight: 600; color: #7654a9; margin-bottom: 10px; }
-.hero p  { font-size: 13px; color: #6450d4; margin-bottom: 22px; }
-.btn-hero {
-  padding: 10px 26px;
-  background: linear-gradient(135deg, #6a41be, #501cde);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.btn-hero:hover { box-shadow: 0 4px 14px rgba(37,99,168,0.35); transform: translateY(-1px); }
-
-.section { padding: 36px 24px; }
-.section h3 { text-align: center; font-size: 16px; font-weight: 500; color: #1a2a3a; margin-bottom: 24px; }
-.books-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  max-width: 860px;
-  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  padding: 60px 0 80px;
 }
-.book-card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(30,60,120,0.08);
-  overflow: hidden;
-  border: 1px solid #e8eef6;
-}
-.book-card img { width: 100%; height: 200px; object-fit: cover; }
-.book-info { padding: 14px; }
-.book-info h4 { font-size: 13px; font-weight: 500; color: #1a2a3a; margin-bottom: 5px; }
-.book-info p  { font-size: 12px; color: #6a82a0; margin-bottom: 12px; line-height: 1.5; }
-.btn-voir {
-  padding: 8px 18px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.btn-voir:hover { box-shadow: 0 3px 10px rgba(37,99,168,0.3); transform: translateY(-1px); }
 
-.footer-section {
-  background: #2c3e50;
-  padding: 36px 20px;
-  text-align: center;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.footer-section h3 { font-size: 15px; font-weight: 500; color: #fff; margin-bottom: 8px; }
-.footer-section p  { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 18px; }
-.btn-contact {
-  padding: 9px 22px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+
+.hero-eyebrow {
+  font-size: 1rem;
+  color: var(--primary);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
-.btn-contact:hover { box-shadow: 0 3px 10px rgba(37,99,168,0.4); transform: translateY(-1px); }
+
+.hero-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.1;
+  color: var(--gray-900);
+  margin-bottom: 20px;
+}
+.hero-title em {
+  color: var(--primary);
+  font-style: italic;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 460px;
+  margin-bottom: 36px;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ── Decoration ─────────────────────────────────────────────── */
+.hero-decoration {
+  position: relative;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+}
+.blob-1 {
+  width: 300px; height: 300px;
+  background: var(--pink-300);
+  top: -20px; right: 0;
+  animation: float 6s ease-in-out infinite;
+}
+.blob-2 {
+  width: 220px; height: 220px;
+  background: var(--pink-200);
+  bottom: 0; left: 20px;
+  animation: float 8s ease-in-out infinite reverse;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-20px); }
+}
+
+/* Book stack illustration */
+.book-stack {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: rotate(-3deg);
+}
+.book {
+  padding: 20px 32px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--white);
+  box-shadow: var(--shadow-lg);
+  letter-spacing: 0.01em;
+}
+.b1 { background: var(--pink-500); transform: rotate(2deg); }
+.b2 { background: var(--pink-700); transform: rotate(-1deg); width: 200px; }
+.b3 { background: var(--pink-400); transform: rotate(3deg); width: 180px; }
+
+
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 40px 0 60px;
+    text-align: center;
+  }
+  .hero-decoration { height: 250px; }
+  .hero-subtitle { margin: 0 auto 36px; }
+  .hero-actions { justify-content: center; }
+}
 </style>

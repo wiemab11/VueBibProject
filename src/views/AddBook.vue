@@ -1,218 +1,290 @@
+<template>
+  <!-- ============================================================
+       AddBook.vue — Add New Book Form
+       ============================================================ -->
+  <div class="page">
+    <div class="container">
+      <div class="form-page">
+
+        <!-- ── Page Title ─────────────────────────────────────────── -->
+        <div class="form-header">
+          <h1>✍️ Add a New Book</h1>
+          <p>Fill in the details below to add a book to the catalog.</p>
+        </div>
+
+        <!-- Error / Success -->
+        <div v-if="error"   class="alert alert-error">{{ error }}</div>
+        <div v-if="success" class="alert alert-success">{{ success }}</div>
+
+        <!-- ── Add Book Form ──────────────────────────────────────── -->
+        <form @submit.prevent="handleSubmit" class="book-form">
+
+          <!-- Two columns: left (main info) + right (cover preview) -->
+          <div class="form-layout">
+
+            <!-- LEFT COLUMN -->
+            <div class="form-fields">
+
+              <div class="form-group">
+                <label class="form-label" for="title">Book Title *</label>
+                <input
+                  id="title"
+                  v-model="form.title"
+                  type="text"
+                  class="form-input"
+                  placeholder="Book Title"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="image">Cover Image URL</label>
+                <input
+                  id="image"
+                  v-model="form.image"
+                  type="url"
+                  class="form-input"
+                  placeholder="https://example.com/cover.jpg"
+                />
+                <span class="form-hint">Paste a URL to the book cover image.</span>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="editor">Publisher / Editor *</label>
+                  <input
+                    id="editor"
+                    v-model="form.editor"
+                    type="text"
+                    class="form-input"
+                    placeholder="Publisher or Editor"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="year">Publication Year *</label>
+                  <input
+                    id="year"
+                    v-model.number="form.year"
+                    type="number"
+                    class="form-input"
+                    placeholder="e.g. 1999"
+                    min="1000"
+                    :max="currentYear"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="author">Author *</label>
+                <select id="author" v-model.number="form.authorId" class="form-select" required>
+                  <option value="" disabled>— Select an author —</option>
+                  <option
+                    v-for="author in authors"
+                    :key="author.id"
+                    :value="author.id"
+                  >
+                    {{ author.name }}
+                  </option>
+                </select>
+                <span v-if="authors.length === 0" class="form-hint loading-hint">
+                  Loading authors…
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="description">Description *</label>
+                <textarea
+                  id="description"
+                  v-model="form.description"
+                  class="form-textarea"
+                  placeholder="Write a short description of the book…"
+                  rows="5"
+                  required
+                ></textarea>
+              </div>
+
+            </div>
+
+            
+
+          </div>
+
+          <!-- Submit -->
+          <div class="form-actions">
+            <router-link to="/books" class="btn btn-ghost">Cancel</router-link>
+            <button type="submit" class="btn btn-primary btn-lg" :disabled="loading">
+              <span v-if="loading" class="btn-spinner"></span>
+              {{ loading ? 'Saving…' : '📚 Add Book' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
-import axios from "axios";
-//ajouter add book
+import { addBook } from '../services/api.js'
+
 export default {
+  name: 'AddBook',
 
   data() {
     return {
-      title: "",
-      image: "",
-      editor: "",
-      year: "",
-      description: "",
-      author: "",
-
+      form: {
+        title: '',
+        image: '',
+        editor: '',
+        year: new Date().getFullYear(),
+        description: '',
+        authorId: '',
+      },
       authors: [],
-
-      errorMsg: "",
-      successMsg: ""
-    };
+      loading: false,
+      error: '',
+      success: '',
+      previewError: false,
+      currentYear: new Date().getFullYear(),
+    }
   },
 
-  mounted() {
-    this.fetchAuthors();
+  async created() {
+    // Load authors for the dropdown
+    this.authors = await getAuthors()
   },
-
 
   methods: {
-    // ✅ تجيب authors من backend
-    async fetchAuthors() {
+    async handleSubmit() {
+      this.error = ''
+      this.success = ''
+      this.loading = true
       try {
-        const res = await axios.get("http://localhost:3000/authors");
-        this.authors = res.data;
-      } catch (error) {
-        this.errorMsg = "Error loading authors";
+        await addBook(this.form)
+        this.success = '✅ Book added successfully! Redirecting…'
+        setTimeout(() => this.$router.push('/books'), 1500)
+      } catch (err) {
+        this.error = err.message || 'Something went wrong.'
+      } finally {
+        this.loading = false
       }
     },
-
-    // ✅ add book
-    async handleAddBook() {
-      this.errorMsg = "";
-      this.successMsg = "";
-
-      // validation
-      if (!this.title || !this.editor || !this.year || !this.author) {
-        this.errorMsg = "Please fill all required fields";
-        return;
-      }
-
-
-      const newBook = {
-        title: this.title,
-        image: this.image,
-        editor: this.editor,
-        year: this.year,
-        description: this.description,
-        authorId: this.author
-      };
-
-      try {
-        await axios.post("http://localhost:3000/books", newBook);
-
-        this.successMsg = "Book added successfully ✅";
-
-        // reset form
-        this.title = "";
-        this.image = "";
-        this.editor = "";
-        this.year = "";
-        this.description = "";
-        this.author = "";
-
-      } catch (error) {
-        this.errorMsg = "Error adding book ❌";
-      }
-    }
-  }
-};
+  },
+}
 </script>
 
-<template>
-  <div class="form-card">
-    <div class="form-header">
-      <h2>Add Book</h2>
-    </div>
-
-    <div class="form-body">
-
-      <div class="field">
-        <label>Title</label>
-        <input v-model="title" type="text" placeholder="Book title" />
-      </div>
-
-      <div class="field">
-        <label>Image</label>
-        <input v-model="image" type="text" placeholder="Image URL" />
-      </div>
-
-      <div class="field">
-        <label>Editor</label>
-        <input v-model="editor" type="text" placeholder="Editor name" />
-      </div>
-
-      <div class="field">
-        <label>Year</label>
-        <input v-model="year" type="number" placeholder="2024" />
-      </div>
-
-      <div class="field">
-        <label>Description</label>
-        <textarea v-model="description" placeholder="Book description..."></textarea>
-      </div>
-
-      <div class="field">
-        <label>Author</label>
-        <select v-model="author">
-          <option value="">Select an author</option>
-          <option v-for="a in authors" :key="a.id" :value="a.id">
-            {{ a.name }}
-          </option>
-        </select>
-      </div>
-
-      <p v-if="errorMsg" class="error">{{ errorMsg }}</p>
-      <p v-if="successMsg" class="success">{{ successMsg }}</p>
-
-      <button class="btn-main" @click="handleAddBook">Ajouter Livre</button>
-
-    </div>
-  </div>
-
-</template>
-
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+.form-page {
+  max-width: 860px;
+  margin: 0 auto;
+}
 
-.form-card {
-  max-width: 480px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(30, 60, 120, 0.10);
-  overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
 }
+.back-link:hover { color: var(--primary); }
+
 .form-header {
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  padding: 18px 28px;
-  color: #fff;
+  margin-bottom: 32px;
 }
-.form-header h2 { font-size: 17px; font-weight: 600; }
-.form-body { padding: 22px 28px 26px; }
-.field { margin-bottom: 14px; }
-.field label {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: #4a6080;
-  margin-bottom: 5px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+.form-header h1 { font-size: 2rem; margin-bottom: 6px; }
+.form-header p  { color: var(--text-muted); }
+
+/* ── Form Layout ─────────────────────────────────────────────── */
+.book-form {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+  box-shadow: var(--shadow-md);
 }
-.field input,
-.field textarea,
-.field select {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1.5px solid #d0daea;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #1a2a3a;
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  background: #f7faff;
-  transition: border 0.18s;
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 40px;
+  margin-bottom: 32px;
 }
-.field input:focus,
-.field textarea:focus,
-.field select:focus   { border-color: #2563a8; background: #fff; }
-.field input::placeholder,
-.field textarea::placeholder { color: #a0b0c8; }
-.field textarea { resize: vertical; min-height: 90px; }
-.field select   { appearance: none; cursor: pointer; }
-.btn-main {
-  width: 100%;
-  padding: 10px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--gray-400);
   margin-top: 4px;
 }
-.btn-main:hover {
-  box-shadow: 0 4px 14px rgba(37, 99, 168, 0.35);
-  transform: translateY(-1px);
+.loading-hint { color: var(--primary); }
+
+/* ── Cover Preview ───────────────────────────────────────────── */
+.cover-preview-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.error {
-  font-size: 12px;
-  color: #e53e3e;
-  margin-bottom: 10px;
-  padding: 7px 11px;
-  background: #fff5f5;
-  border-radius: 6px;
-  border: 1px solid #fed7d7;
+
+.cover-preview {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border);
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.success {
-  font-size: 12px;
-  color: #276749;
-  margin-bottom: 10px;
-  padding: 7px 11px;
-  background: #f0fff4;
-  border-radius: 6px;
-  border: 1px solid #9ae6b4;
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-placeholder {
+  text-align: center;
+  padding: 24px;
+}
+.cover-placeholder span { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+.cover-placeholder p    { font-size: 0.8rem; color: var(--gray-400); line-height: 1.4; }
+.cover-placeholder.error span { filter: grayscale(1); }
+
+/* ── Form Actions ─────────────────────────────────────────────── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--border);
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .book-form { padding: 24px 20px; }
+  .form-layout { grid-template-columns: 1fr; }
+  .cover-preview-col { order: -1; }
+  .cover-preview { max-width: 200px; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions .btn { width: 100%; justify-content: center; }
 }
 </style>

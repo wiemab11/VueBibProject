@@ -1,25 +1,31 @@
 <template>
-  <component :is="currentNavbar" />
-  <router-view />
+  <!-- Root application shell -->
+  <div id="app-shell">
+    <!-- Dynamic Navbar (changes based on auth state + route) -->
+    <Navbar />
+
+    <!-- Page transitions -->
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+  </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+<script>
+import Navbar from './components/NavBarDy.vue'
 
-import Navbar from './components/Navbar.vue'
-import Navbar1 from './components/Navbar1.vue'
-import Navbar2 from './components/Navbar2.vue'
-
-const route = useRoute()
-
-const currentNavbar = computed(() => {
-  if (route.path === '/'||route.path === '/login' || route.path === '/register') {
-    return Navbar
-  } else if (route.path === '/'||route.path === '/books'|| route.path === '/add-book') {
-    return Navbar2
-  } else if (route.path === '/'||route.path === '/Authors'||route.path === '/favourites') {
-    return Navbar1
-  }
-})
+export default {
+  name: 'App',
+  components: { Navbar },
+}
 </script>
+
+<style>
+#app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+</style>

@@ -1,130 +1,174 @@
 <template>
-  <div class="form-card">
+  <!-- ============================================================
+       Register.vue — Registration Page
+       ============================================================ -->
+  <div class="page">
+    <div class="container auth-container">
+      <div class="auth-card">
 
-    <div class="form-header">
-      <h2>Create account</h2>
-    </div>
+        <!-- Header -->
+        <div class="auth-header">
+          <span class="auth-icon">✨</span>
+          <h1>Join Book Store</h1>
+          <p>Create your account and start exploring.</p>
+        </div>
 
-    <div class="form-body">
+        <!-- Error / Success messages -->
+        <div v-if="error"   class="alert alert-error">{{ error }}</div>
+        <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-      <div class="field">
-        <label>Username</label>
-        <input v-model="username" type="text" placeholder="Choose a username" />
+        <!-- Register Form -->
+        <form @submit.prevent="handleRegister">
+
+          <div class="form-group">
+            <label class="form-label" for="name">Full Name</label>
+            <input
+              id="name"
+              v-model="form.name"
+              type="text"
+              class="form-input"
+              placeholder="Jane Austen"
+              required
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              class="form-input"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input
+              id="password"
+              v-model="form.password"
+              type="password"
+              class="form-input"
+              placeholder="At least 6 characters"
+              minlength="6"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg full-width" :disabled="loading">
+            <span v-if="loading" class="btn-spinner"></span>
+            {{ loading ? 'Creating account…' : 'Create Account' }}
+          </button>
+        </form>
+
+        <!-- Footer link -->
+        <p class="auth-footer">
+          Already have an account?
+          <router-link to="/login">Sign in →</router-link>
+        </p>
       </div>
-
-      <div class="field">
-        <label>Email</label>
-        <input v-model="email" type="email" placeholder="your@email.com" />
-      </div>
-
-      <div class="field">
-        <label>Password</label>
-        <input v-model="password" type="password" placeholder="••••••••" />
-      </div>
-
-      <p v-if="errorMsg" class="error">{{ errorMsg }}</p>
-      <p v-if="successMsg" class="success">{{ successMsg }}</p>
-
-      <button class="btn-main" @click="handleRegister">Register</button>
-      <button class="btn-switch" @click="$router.push('/login')">Switch to Login</button>
-
     </div>
   </div>
 </template>
 
-<script setup >
+<script>
+import { register } from '../services/api.js'
+
+export default {
+  name: 'Register',
+
+  data() {
+    return {
+      form: { name: '', email: '', password: '' },
+      error: '',
+      success: '',
+      loading: false,
+    }
+  },
+
+  methods: {
+    async handleRegister() {
+      this.error = ''
+      this.success = ''
+      this.loading = true
+      try {
+        await register(this.form)
+        this.success = '🎉 Account created! Redirecting to login…'
+        // Redirect to login after short delay
+        setTimeout(() => this.$router.push('/login'), 1500)
+      } catch (err) {
+        this.error = err.message
+      } finally {
+        this.loading = false
+      }
+    },
+  },
+}
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+/* Reuse same styles as Login — shared auth layout */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
+}
 
-.form-card {
-  max-width: 380px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(30, 60, 120, 0.10);
-  overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 40px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.4s ease both;
 }
-.form-header {
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  padding: 18px 28px;
-  color: #fff;
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.form-header h2 { font-size: 17px; font-weight: 600; }
-.form-body { padding: 22px 28px 26px; }
-.field { margin-bottom: 14px; }
-.field label {
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.auth-icon {
+  font-size: 2.5rem;
   display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: #4a6080;
-  margin-bottom: 5px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  margin-bottom: 12px;
 }
-.field input {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1.5px solid #d0daea;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #1a2a3a;
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  background: #f7faff;
-  transition: border 0.18s;
+.auth-header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+.auth-header p  { color: var(--text-muted); font-size: 0.95rem; }
+
+.full-width { width: 100%; justify-content: center; }
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
-.field input:focus        { border-color: #2563a8; background: #fff; }
-.field input::placeholder { color: #a0b0c8; }
-.btn-main {
-  width: 100%;
-  padding: 10px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  margin-top: 4px;
+
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
-.btn-main:hover {
-  box-shadow: 0 4px 14px rgba(37, 99, 168, 0.35);
-  transform: translateY(-1px);
-}
-.btn-switch {
-  width: 100%;
-  padding: 9px;
-  background: transparent;
-  color: #2563a8;
-  border: 1.5px solid #c0d4ee;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  margin-top: 8px;
-}
-.btn-switch:hover { background: #f0f6ff; border-color: #2563a8; }
-.error {
-  font-size: 12px;
-  color: #e53e3e;
-  margin-bottom: 10px;
-  padding: 7px 11px;
-  background: #fff5f5;
-  border-radius: 6px;
-  border: 1px solid #fed7d7;
-}
-.success {
-  font-size: 12px;
-  color: #276749;
-  margin-bottom: 10px;
-  padding: 7px 11px;
-  background: #f0fff4;
-  border-radius: 6px;
-  border: 1px solid #9ae6b4;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .auth-card { padding: 32px 24px; }
 }
 </style>

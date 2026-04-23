@@ -2,26 +2,22 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from '../views/Home.vue'
 import Books from '../views/Allbooks.vue'
-//import Authors from '../views/Authors.vue'
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
-import AddBook from '@/views/AddBook.vue'
+import AddBook from '../views/AddBook.vue'
 const routes = [
   {
     path: '/',
     component: Home
   },
   {
-    path: '/books',
+    path: '/Books',
     component: Books
   },
   {
-    path: '/add-book',
+    path: '/AddBook',
     component: AddBook
   },
-  //{
-   // path: '/authors',
-   // component: Authors}
   
 {
   path: '/Login',
