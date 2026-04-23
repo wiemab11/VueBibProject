@@ -1,137 +1,289 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-
-interface Book {
-  id: number;
-  title: string;
-  editor: string;
-  year: number;
-  author?: { name: string };
-  image: string;
-  description: string;
-}
-
-const books = ref<Book[]>([]);
-
-const deleteBook = (id: number) => {
-  books.value = books.value.filter(book => book.id !== id);
-};
-</script>
-
 <template>
-  
+  <!-- ============================================================
+       AllBooks.vue — Books Catalog Page
+       ============================================================ -->
   <div class="page">
+    <div class="container">
 
-    <!-- Top bar -->
-    <div class="top-bar">
-      <h2>Books</h2>
-      <button class="btn-add" @click="$router.push('/add-book')">Add Book</button>
+      <!-- ── Page Header ────────────────────────────────────────── -->
+      <div class="page-header">
+        <div>
+          <h1>📚 Book Catalog</h1>
+          <p class="subtitle">{{ books.length }} books in the collection</p>
+        </div>
+        <router-link to="/AddBook" class="btn btn-primary">
+          + Add Book
+        </router-link>
+      </div>
+
+      <!-- ── Loading State ──────────────────────────────────────── -->
+      <div v-if="loading" class="loader">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- ── Empty State ────────────────────────────────────────── -->
+      <div v-else-if="books.length === 0" class="empty-state">
+        <span>📭</span>
+        <h3>No books yet</h3>
+        <p>Be the first to add a book to the catalog!</p>
+        <router-link to="//AddBook" class="btn btn-primary">Add First Book</router-link>
+      </div>
+
+      <!-- ── Books Grid ─────────────────────────────────────────── -->
+      <div v-else class="books-grid">
+        <div
+          v-for="book in books"
+          :key="book.id"
+          class="book-card"
+        >
+          <!-- Cover image -->
+          <div class="book-cover">
+            <img
+              :src="book.image || defaultCover"
+              :alt="book.title"
+              @error="handleImgError"
+            />
+            <!-- Like button overlay -->
+            <button
+              class="like-btn"
+              :class="{ liked: isFav(book.id) }"
+              @click="toggleLike(book.id)"
+              :title="isFav(book.id) ? 'Remove from favorites' : 'Add to favorites'"
+            >
+              {{ isFav(book.id) ? '❤️' : '🤍' }}
+            </button>
+          </div>
+
+          <!-- Book info -->
+          <div class="book-info">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <p class="book-author">by {{ getAuthorName(book.authorId) }}</p>
+            <p class="book-meta">{{ book.editor }} · {{ book.year }}</p>
+            <p class="book-desc">{{ truncate(book.description, 90) }}</p>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <!-- Table -->
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Editor</th>
-            <th>Year</th>
-            <th>Author</th>
-            <th>Image</th>
-            <th>Summary</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="book in books" :key="book.id">
-            <td>{{ book.id }}</td>
-            <td>{{ book.title }}</td>
-            <td>{{ book.editor }}</td>
-            <td>{{ book.year }}</td>
-            <td>{{ book.author?.name }}</td>
-            <td class="td-muted">{{ book.image }}</td>
-            <td class="td-muted">{{ book.description }}</td>
-            <td>
-              <button class="btn-icon btn-delete" @click="deleteBook(book.id)">✂</button>
-              <button class="btn-icon btn-edit" @click="$router.push(`/edit/${book.id}`)">✏</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
   </div>
 </template>
 
+<script>
+import { getBooks, toggleFavorite } from '../services/api.js'
+import { authState } from '../main.js'
 
+export default {
+  name: 'AllBooks',
+
+  data() {
+    return {
+      books: [],
+      authors: [],
+      loading: true,
+      // Default cover when image fails to load
+      defaultCover: 'https://via.placeholder.com/200x280/ffbdd8/f43f87?text=📖',
+      // Track local favorite state for instant UI feedback
+      favoriteIds: new Set(),
+    }
+  },
+
+  async created() {
+    await this.loadData()
+  },
+
+  methods: {
+    async loadData() {
+      this.loading = true
+      try {
+        // Load books and authors in parallel
+        const [books, authors] = await Promise.all([getBooks(), getAuthors()])
+        this.books = books
+        this.authors = authors
+        // Initialize favorites set from localStorage
+        this.books.forEach(b => {
+          if (isFavorite(authState.user.id, b.id)) {
+            this.favoriteIds.add(b.id)
+          }
+        })
+        // Trigger reactivity for Set
+        this.favoriteIds = new Set(this.favoriteIds)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /** Get author name by ID */
+    getAuthorName(authorId) {
+      const author = this.authors.find(a => a.id === authorId)
+      return author ? author.name : 'Unknown Author'
+    },
+
+    /** Check if book is in favorites */
+    isFav(bookId) {
+      return this.favoriteIds.has(bookId)
+    },
+
+    /** Toggle favorite for a book */
+    async toggleLike(bookId) {
+      const userId = authState.user.id
+      await toggleFavorite(userId, bookId)
+      // Update local Set reactively
+      const updated = new Set(this.favoriteIds)
+      if (updated.has(bookId)) {
+        updated.delete(bookId)
+      } else {
+        updated.add(bookId)
+      }
+      this.favoriteIds = updated
+    },
+
+    /** Truncate long descriptions */
+    truncate(text, max) {
+      if (!text) return ''
+      return text.length > max ? text.slice(0, max) + '…' : text
+    },
+
+    /** Replace broken image with default */
+    handleImgError(e) {
+      e.target.src = this.defaultCover
+    },
+  },
+}
+</script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
-
-.page { padding: 28px 24px; font-family: 'DM Sans', sans-serif; background: #eef2f7; min-height: 100vh; }
-
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.top-bar h2 { font-size: 22px; font-weight: 600; color: #1a2a3a; }
-
-.btn-add {
-  padding: 9px 20px;
-  background: linear-gradient(135deg, #1a3a5c, #2563a8);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+/* ── Page Header ─────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 36px;
 }
-.btn-add:hover { box-shadow: 0 4px 14px rgba(37,99,168,0.35); transform: translateY(-1px); }
+.page-header h1 { font-size: 2rem; }
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
 
-.table-wrap {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(30,60,120,0.08);
+/* ── Books Grid ──────────────────────────────────────────────── */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+/* ── Book Card ───────────────────────────────────────────────── */
+.book-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid #e8eef6;
+  transition: all 0.25s;
 }
-table { width: 100%; border-collapse: collapse; }
-thead tr { background: #f5f7fa; border-bottom: 1.5px solid #e0e6f0; }
-thead th {
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 500;
-  color: #4a6080;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--pink-300);
 }
-tbody tr { border-bottom: 1px solid #f0f4f8; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: #f8faff; }
-tbody td { padding: 12px 14px; font-size: 13px; color: #1a2a3a; vertical-align: middle; }
 
-.td-muted {
-  color: #6a82a0;
-  font-size: 12px;
-  max-width: 160px;
+/* Cover image area */
+.book-cover {
+  position: relative;
+  height: 220px;
+  background: var(--pink-50);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.book-card:hover .book-cover img {
+  transform: scale(1.04);
 }
 
-.btn-icon {
-  width: 34px;
-  height: 34px;
+/* Like button */
+.like-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   border: none;
-  border-radius: 7px;
+  background: rgba(255,255,255,0.9);
+  font-size: 1.2rem;
   cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
 }
-.btn-delete { background: linear-gradient(135deg, #1a3a5c, #2563a8); color: #fff; }
-.btn-edit   { background: linear-gradient(135deg, #1a3a5c, #2563a8); color: #fff; }
-.btn-icon:hover { box-shadow: 0 3px 10px rgba(37,99,168,0.3); transform: translateY(-1px); }
+.like-btn:hover {
+  transform: scale(1.15);
+  background: white;
+}
+.like-btn.liked {
+  animation: pop 0.25s ease;
+}
+@keyframes pop {
+  0%  { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100%{ transform: scale(1); }
+}
+
+/* Book info */
+.book-info { padding: 16px; }
+
+.book-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.book-author {
+  font-size: 0.83rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.book-meta {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+.book-desc {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Empty State ─────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+.empty-state span {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 16px;
+}
+.empty-state h3 { margin-bottom: 8px; }
+.empty-state p  { color: var(--text-muted); margin-bottom: 24px; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .page-header { flex-direction: column; gap: 16px; align-items: flex-start; }
+  .books-grid  { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+  .book-cover  { height: 180px; }
+}
 </style>
