@@ -1,7 +1,5 @@
 <template>
-  <!-- ============================================================
-       Favorites.vue — User's Favorite Books
-       ============================================================ -->
+
   <div class="page">
     <div class="container">
 
@@ -56,7 +54,6 @@
           <!-- Info -->
           <div class="book-info">
             <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-author">by {{ getAuthorName(book.authorId) }}</p>
             <p class="book-meta">{{ book.editor }} · {{ book.year }}</p>
             <p class="book-desc">{{ truncate(book.description, 90) }}</p>
           </div>
@@ -68,45 +65,39 @@
 </template>
 
 <script>
-import { getFavorites, getAuthors, toggleFavorite } from '../services/api.js'
+//pour afficher les livres favoris de l'utilisateur, et permettre de les retirer des favoris
+import { getFavorites, toggleFavorite } from '../services/api.js'
 import { authState } from '../main.js'
 
 export default {
   name: 'Favorites',
-
+  //pour stocker les données nécessaires à l'affichage des livres favoris
   data() {
     return {
       favorites: [],
-      authors: [],
       loading: true,
       defaultCover: 'https://via.placeholder.com/200x280/ffbdd8/f43f87?text=📖',
     }
   },
-
+  //pour charger les livres favoris de l'utilisateur au moment où le composant est créé
   async created() {
     await this.loadData()
   },
-
+  //pour les méthodes de l'affichage des livres favoris, et la gestion des favoris
   methods: {
     async loadData() {
       this.loading = true
       try {
-        const [favs, authors] = await Promise.all([
+        const [favs,] = await Promise.all([
           getFavorites(authState.user.id),
-          getAuthors(),
         ])
         this.favorites = favs
-        this.authors = authors
       } finally {
         this.loading = false
       }
     },
 
-    getAuthorName(authorId) {
-      const author = this.authors.find(a => a.id === authorId)
-      return author ? author.name : 'Unknown Author'
-    },
-
+    //pour retirer un livre des favoris de l'utilisateur, en envoyant la requête au backend et en mettant à jour la liste locale des favoris
     async removeFromFavorites(bookId) {
       await toggleFavorite(authState.user.id, bookId)
       // Remove from local list immediately
@@ -117,7 +108,7 @@ export default {
       if (!text) return ''
       return text.length > max ? text.slice(0, max) + '…' : text
     },
-
+    
     handleImgError(e) {
       e.target.src = this.defaultCover
     },

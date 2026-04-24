@@ -5,6 +5,8 @@ import Books from '../views/Allbooks.vue'
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import AddBook from '../views/AddBook.vue'
+import Favorites from '../views/Favorites.vue'
+
 const routes = [
   {
     path: '/',
@@ -18,11 +20,14 @@ const routes = [
     path: '/AddBook',
     component: AddBook
   },
-  
-{
-  path: '/Login',
-  component: Login
-},
+  {
+    path: '/Favorites',
+    component: Favorites},
+ 
+  {
+    path: '/Login',
+    component: Login
+  },
 {
   path: '/register',
   component: Register

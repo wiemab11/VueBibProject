@@ -1,63 +1,49 @@
+
 <template>
-  <!-- ============================================================
+  <!--
        Navbar.vue — Dynamic Navigation Bar
        Shows different links based on:
          1. User is NOT logged in  → Home, Login, Register
          2. User IS logged in      → Home, Books, Favorites, Logout
-         3. User is on Add Book    → Home, Books, Add Book, Logout
-       ============================================================ -->
+         3. User is on Add Book    → Home, Books, Add Book, Logout -->
+  <!-- pour l'affichage de la barre selon l'état de connexion de l'utilisateur et la page courante -->
   <nav class="navbar">
     <div class="container nav-inner">
-
       <!-- 🌸 Brand Logo -->
       <router-link to="/" class="brand">
         <span class="brand-icon">🌸</span>
         <span class="brand-name">Book Store</span>
       </router-link>
 
-      <!-- Hamburger (mobile) -->
-      <button class="hamburger" @click="menuOpen = !menuOpen" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-
-      <!-- Nav Links -->
       <div class="nav-links" :class="{ open: menuOpen }">
 
-        <!-- Always visible -->
+      <!-- c'est le lien Home qui est toujours affiché, que l'utilisateur soit connecté ou pas -->
         <router-link to="/" class="nav-link" @click="menuOpen = false">Home</router-link>
-
+      <!-- si l'utilisateur n'est pas connecté, on affiche les liens Login et Register -->
         <!-- ── GUEST (not logged in) ── -->
         <template v-if="!isLoggedIn">
           <router-link to="/login"    class="nav-link" @click="menuOpen = false">Login</router-link>
           <router-link to="/register" class="nav-link btn btn-primary btn-sm" @click="menuOpen = false">Register</router-link>
         </template>
-
+         
         <!-- ── LOGGED IN ── -->
         <template v-else>
-          <router-link to="/Books"     class="nav-link" @click="menuOpen = false">Books</router-link>
+          <router-link to="/books" class="nav-link" @click="menuOpen = false">Books</router-link>
 
-          <!-- Show "Add Book" link only when on the AddBook page -->
-          <router-link
-            v-if="isOnAddBook"
-            to="/AddBook"
-            class="nav-link active-sub"
-            @click="menuOpen = false"
-          >Add Book</router-link>
+          <template v-if="isOnAddBook">
+            <router-link to="/books/add"   class="nav-link active-sub" @click="menuOpen = false">Add Book</router-link>
+          </template>
 
-          <!-- Show Favorites when NOT on AddBook page -->
-          <router-link
-            v-else
-            to="/favorites"
-            class="nav-link"
-            @click="menuOpen = false"
-          >
-            ❤️ Favorites
-          </router-link>
+      
+          <template v-else>
+            <router-link to="/favorites" class="nav-link" @click="menuOpen = false">❤️ Favorites</router-link>
+          </template>
 
-          <!-- User greeting + Logout -->
-          <span class="nav-user">Hi, {{ currentUser.name.split(' ')[0] }}!</span>
+    
+          <span class="nav-user">Hi, {{ currentUser?.username || currentUser?.name || 'User' }}!</span>
           <button class="btn btn-outline btn-sm" @click="handleLogout">Logout</button>
         </template>
+
       </div>
     </div>
   </nav>
@@ -71,39 +57,26 @@ export default {
 
   data() {
     return {
-      menuOpen: false, // mobile menu toggle
+      menuOpen: false,
     }
   },
-
   computed: {
-    /** Is the user currently logged in? */
-    isLoggedIn() {
-      return authState.isLoggedIn
-    },
-
-    /** Current user object */
-    currentUser() {
-      return authState.user
-    },
-
-    /** Are we on the Add Book page? */
-    isOnAddBook() {
-      return this.$route.name === 'AddBook'
-    },
+    isLoggedIn()    { return authState.isLoggedIn },
+    currentUser()   { return authState.user },
+    isOnAddBook()   { return this.$route.name === 'AddBook' },
   },
 
   methods: {
     handleLogout() {
       authState.logout()
       this.menuOpen = false
-      this.$router.push('/')
+      this.$router.push('/login')
     },
   },
 }
 </script>
 
 <style scoped>
-/* ── Navbar shell ───────────────────────────────────────────── */
 .navbar {
   position: sticky;
   top: 0;
@@ -158,16 +131,17 @@ export default {
   color: var(--primary);
   background: var(--pink-50);
 }
-/* Vue Router active class */
 .nav-link.router-link-active {
   color: var(--primary);
   background: var(--pink-100);
   font-weight: 600;
 }
 
+/* رابط Add Book / Add Author وهو active */
 .active-sub {
   color: var(--primary) !important;
   background: var(--pink-100) !important;
+  font-weight: 600;
 }
 
 .nav-user {

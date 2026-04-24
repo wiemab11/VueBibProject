@@ -3,7 +3,7 @@
   <div id="app-shell">
     <!-- Dynamic Navbar (changes based on auth state + route) -->
     <Navbar />
-
+    
     <!-- Page transitions -->
     <router-view v-slot="{ Component }">
       <transition name="fade" mode="out-in">
@@ -14,6 +14,7 @@
 </template>
 
 <script>
+//composant racine de l'application, qui inclut la barre de navigation et gère les transitions entre les pages
 import Navbar from './components/NavBarDy.vue'
 
 export default {

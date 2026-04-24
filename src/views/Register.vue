@@ -1,7 +1,5 @@
 <template>
-  <!-- ============================================================
-       Register.vue — Registration Page
-       ============================================================ -->
+  
   <div class="page">
     <div class="container auth-container">
       <div class="auth-card">
@@ -78,7 +76,7 @@
 
 <script>
 import { register } from '../services/api.js'
-
+//envoyant les données du formulaire au backend et en stockant l'état de connexion globalement
 export default {
   name: 'Register',
 
@@ -90,7 +88,7 @@ export default {
       loading: false,
     }
   },
-
+  
   methods: {
     async handleRegister() {
       this.error = ''

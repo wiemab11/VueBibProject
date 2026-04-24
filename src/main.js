@@ -1,17 +1,25 @@
-// ============================================================
-// main.js — App Entry Point
-// ============================================================
+
+//point d'entrée de l'application Vue, où l'on crée l'instance de l'application, configure le routeur, et gère l'état global d'authentification de l'utilisateur
 import { createApp, reactive } from 'vue'
 import App from './App.vue'
 import router from './router/index.js'
 import './assets/styles.css'
 
-// ── Global Auth State ─────────────────────────────────────────
-// This reactive object is shared across all components via
-// app.config.globalProperties.$auth
-// In a larger app, replace this with Pinia or Vuex store.
+// Global Auth State
+
+//fonction pour récupérer l'utilisateur stocké dans le localStorage
+function getUserFromStorage() {
+  try {
+    const data = localStorage.getItem('bs_current_user')
+    if (!data || data === 'undefined') return null
+    return JSON.parse(data)
+  } catch (e) {
+    return null
+  }
+}
+//gere l'état de connexion de user , avec des méthodes pour se connecter, se déconnecter, et vérifier si l'utilisateur est connecté
 export const authState = reactive({
-  user: JSON.parse(localStorage.getItem('bs_current_user') || 'null'),
+  user: getUserFromStorage(),
 
   login(user) {
     this.user = user
@@ -28,9 +36,12 @@ export const authState = reactive({
   },
 })
 
+
+// App setup
+
+
 const app = createApp(App)
 
-// Make auth state available to all components as this.$auth
 app.config.globalProperties.$auth = authState
 
 app.use(router)

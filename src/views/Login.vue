@@ -62,12 +62,13 @@
 </template>
 
 <script>
+//permet de gérer la connexion de l'utilisateur, en envoyant les données du formulaire au backend et en stockant l'état de connexion globalement
 import { login } from '../services/api.js'
 import { authState } from '../main.js'
 
 export default {
   name: 'Login',
-
+//pour stocker les données du formulaire de connexion, ainsi que les états d'erreur et de chargement
   data() {
     return {
       form: { email: '', password: '' },
@@ -75,15 +76,15 @@ export default {
       loading: false,
     }
   },
-
+//soumision du formulaire de connexion, avec gestion des erreurs et redirection en cas de succès
   methods: {
     async handleLogin() {
       this.error = ''
       this.loading = true
       try {
-        const { user } = await login(this.form)
+        const data = await login(this.form)
         // Save user to global auth state + localStorage
-        authState.login(user)
+        authState.login(data)
         // Redirect to books page
         this.$router.push('/books')
       } catch (err) {

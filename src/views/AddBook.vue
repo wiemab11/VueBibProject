@@ -1,12 +1,10 @@
 <template>
-  <!-- ============================================================
-       AddBook.vue — Add New Book Form
-       ============================================================ -->
+
   <div class="page">
     <div class="container">
       <div class="form-page">
 
-        <!-- ── Page Title ─────────────────────────────────────────── -->
+        <!-- ── Page Title  -->
         <div class="form-header">
           <h1>✍️ Add a New Book</h1>
           <p>Fill in the details below to add a book to the catalog.</p>
@@ -16,7 +14,7 @@
         <div v-if="error"   class="alert alert-error">{{ error }}</div>
         <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-        <!-- ── Add Book Form ──────────────────────────────────────── -->
+        <!-- ── Add Book Form -->
         <form @submit.prevent="handleSubmit" class="book-form">
 
           <!-- Two columns: left (main info) + right (cover preview) -->
@@ -76,40 +74,9 @@
                   />
                 </div>
               </div>
-
-              <div class="form-group">
-                <label class="form-label" for="author">Author *</label>
-                <select id="author" v-model.number="form.authorId" class="form-select" required>
-                  <option value="" disabled>— Select an author —</option>
-                  <option
-                    v-for="author in authors"
-                    :key="author.id"
-                    :value="author.id"
-                  >
-                    {{ author.name }}
-                  </option>
-                </select>
-                <span v-if="authors.length === 0" class="form-hint loading-hint">
-                  Loading authors…
-                </span>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="description">Description *</label>
-                <textarea
-                  id="description"
-                  v-model="form.description"
-                  class="form-textarea"
-                  placeholder="Write a short description of the book…"
-                  rows="5"
-                  required
-                ></textarea>
-              </div>
-
             </div>
 
             
-
           </div>
 
           <!-- Submit -->
@@ -128,35 +95,29 @@
 </template>
 
 <script>
-import { addBook } from '../services/api.js'
+//composant de la page d'ajout de livre, qui contient un formulaire pour saisir les détails du livre et une prévisualisation de la couverture
+import { addBook  } from '../services/api.js'
 
 export default {
   name: 'AddBook',
-
+//pour stocker les données du formulaire, ainsi que les états de chargement, d'erreur, et de succès
   data() {
-    return {
-      form: {
-        title: '',
-        image: '',
-        editor: '',
-        year: new Date().getFullYear(),
-        description: '',
-        authorId: '',
-      },
-      authors: [],
-      loading: false,
-      error: '',
-      success: '',
-      previewError: false,
-      currentYear: new Date().getFullYear(),
-    }
-  },
+  return {
+    form: {
+      title: '',
+      image: '',
+      editor: '',
+      year: new Date().getFullYear(),
+    },
+    currentYear: new Date().getFullYear(), 
+    loading: false,
+    error: '',
+    success: ''
+  }
+},
 
-  async created() {
-    // Load authors for the dropdown
-    this.authors = await getAuthors()
-  },
-
+  
+//pour gérer la soumission du formulaire, en envoyant les données au backend et en affichant les messages de succès ou d'erreur
   methods: {
     async handleSubmit() {
       this.error = ''

@@ -1,11 +1,9 @@
 <template>
-  <!-- ============================================================
-       AllBooks.vue — Books Catalog Page
-       ============================================================ -->
+
   <div class="page">
     <div class="container">
 
-      <!-- ── Page Header ────────────────────────────────────────── -->
+      <!-- ── Page Header -->
       <div class="page-header">
         <div>
           <h1>📚 Book Catalog</h1>
@@ -16,20 +14,20 @@
         </router-link>
       </div>
 
-      <!-- ── Loading State ──────────────────────────────────────── -->
+      <!-- ── Loading State -->
       <div v-if="loading" class="loader">
         <div class="spinner"></div>
       </div>
 
-      <!-- ── Empty State ────────────────────────────────────────── -->
+      
       <div v-else-if="books.length === 0" class="empty-state">
         <span>📭</span>
         <h3>No books yet</h3>
         <p>Be the first to add a book to the catalog!</p>
-        <router-link to="//AddBook" class="btn btn-primary">Add First Book</router-link>
+        <router-link to="/AddBook" class="btn btn-primary">Add First Book</router-link>
       </div>
 
-      <!-- ── Books Grid ─────────────────────────────────────────── -->
+      <!-- ── Books Grid -->
       <div v-else class="books-grid">
         <div
           v-for="book in books"
@@ -54,10 +52,9 @@
             </button>
           </div>
 
-          <!-- Book info -->
+          
           <div class="book-info">
             <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-author">by {{ getAuthorName(book.authorId) }}</p>
             <p class="book-meta">{{ book.editor }} · {{ book.year }}</p>
             <p class="book-desc">{{ truncate(book.description, 90) }}</p>
           </div>
@@ -69,54 +66,48 @@
 </template>
 
 <script>
+//pour afficher tous les livres, et permettre de les ajouter aux favoris
 import { getBooks, toggleFavorite } from '../services/api.js'
 import { authState } from '../main.js'
 
 export default {
   name: 'AllBooks',
-
+//pour stocker les livres récupérés du backend, l'état de chargement, et les favoris de l'utilisateur
   data() {
     return {
       books: [],
-      authors: [],
       loading: true,
-      // Default cover when image fails to load
       defaultCover: 'https://via.placeholder.com/200x280/ffbdd8/f43f87?text=📖',
-      // Track local favorite state for instant UI feedback
       favoriteIds: new Set(),
     }
   },
-
+  //pour charger les livres au moment où le composant est créé
   async created() {
     await this.loadData()
   },
-
+  //pour calculer l'année actuelle pour la validation du formulaire d'ajout de livre
+computed: {
+  currentYear() {
+    return new Date().getFullYear()
+  }
+},
+//pour les méthodes de l'affichage des livres, et la gestion des favoris
   methods: {
-    async loadData() {
-      this.loading = true
-      try {
-        // Load books and authors in parallel
-        const [books, authors] = await Promise.all([getBooks(), getAuthors()])
-        this.books = books
-        this.authors = authors
-        // Initialize favorites set from localStorage
-        this.books.forEach(b => {
-          if (isFavorite(authState.user.id, b.id)) {
-            this.favoriteIds.add(b.id)
-          }
-        })
-        // Trigger reactivity for Set
-        this.favoriteIds = new Set(this.favoriteIds)
-      } finally {
-        this.loading = false
-      }
-    },
+   async loadData() {
+  this.loading = true
+  try {
+    const books = await getBooks()
+    this.books = books || []
+    this.favoriteIds = new Set()
+  } catch (err) {
+    console.log(err)
+    this.books = []
+  } finally {
+    this.loading = false
+  }
+},
 
-    /** Get author name by ID */
-    getAuthorName(authorId) {
-      const author = this.authors.find(a => a.id === authorId)
-      return author ? author.name : 'Unknown Author'
-    },
+   
 
     /** Check if book is in favorites */
     isFav(bookId) {

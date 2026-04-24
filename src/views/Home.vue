@@ -1,7 +1,6 @@
 <template>
   <div class="page">
     <div class="container">
-
       <!-- ── Hero Section ─────────────────────────────────────── -->
       <section class="hero">
         <div class="hero-content slide-up-enter-active" style="animation: slideUp 0.6s ease both;">
@@ -37,6 +36,7 @@
 </template>
 
 <script>
+//pour gérer l'affichage de la page d'accueil en fonction de l'état de connexion de l'utilisateur
 import { authState } from '../main.js'
 
 export default {
