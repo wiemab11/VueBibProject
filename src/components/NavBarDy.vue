@@ -1,12 +1,7 @@
 
 <template>
   <!--
-       Navbar.vue — Dynamic Navigation Bar
-       Shows different links based on:
-         1. User is NOT logged in  → Home, Login, Register
-         2. User IS logged in      → Home, Books, Favorites, Logout
-         3. User is on Add Book    → Home, Books, Add Book, Logout -->
-  <!-- pour l'affichage de la barre selon l'état de connexion de l'utilisateur et la page courante -->
+       Navbar.vue — Dynamic Navigation Bar -->
   <nav class="navbar">
     <div class="container nav-inner">
       <!-- 🌸 Brand Logo -->
@@ -65,7 +60,6 @@ export default {
     currentUser()   { return authState.user },
     isOnAddBook()   { return this.$route.name === 'AddBook' },
   },
-
   methods: {
     handleLogout() {
       authState.logout()
@@ -74,6 +68,7 @@ export default {
     },
   },
 }
+
 </script>
 
 <style scoped>

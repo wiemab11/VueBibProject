@@ -5,7 +5,7 @@ import App from './App.vue'
 import router from './router/index.js'
 import './assets/styles.css'
 
-// Global Auth State
+
 
 //fonction pour récupérer l'utilisateur stocké dans le localStorage
 function getUserFromStorage() {
